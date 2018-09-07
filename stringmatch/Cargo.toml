@@ -1,0 +1,6 @@
+[package]
+name = "stringmatch"
+version = "0.1.0"
+authors = ["Juneyoung Lee <aqjune@gmail.com>"]
+
+[dependencies]
