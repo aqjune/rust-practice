@@ -1,12 +1,14 @@
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
+use std::env;
 
 mod naive;
 mod kmp;
+mod ahocorasick;
 
 fn print_result(name:&str, queries:&Vec<Vec<char>>, res:&Vec<Vec<usize>>) {
-    print!("{}: ", name);
+    println!("<{}>", name);
     for idx in 0..queries.len() {
         let query_str:String = queries[idx].iter().collect();
         println!("Query: {}", query_str);
@@ -17,12 +19,26 @@ fn print_result(name:&str, queries:&Vec<Vec<char>>, res:&Vec<Vec<usize>>) {
     }
 }
 
+fn strip(chrs:&mut Vec<char>) {
+    loop {
+        match chrs.last().cloned() {
+            None => break,
+            Some (c) => {
+                if !c.is_whitespace()
+                { break; }
+                chrs.pop();
+            }
+        }
+    }
+}
+
 fn main() {
-    let f = File::open("test2.input").expect("file not found");
+    let f = File::open(env::args().nth(1).expect("Missing argument (input file name)")).expect("file not found");
     let mut buff = BufReader::new(&f);
     let mut text = String::new();
     buff.read_line(&mut text);
-    let text_vec:Vec<char> = text.chars().collect();
+    let mut text_vec:Vec<char> = text.chars().collect();
+    strip(&mut text_vec);
     let mut queries_vec:Vec<Vec<char>> = Vec::new();
 
     loop {
@@ -33,16 +49,7 @@ fn main() {
                     break;
                 }
                 let mut query_vec:Vec<char> = query.chars().collect();
-                loop {
-                    match query_vec.last().cloned() {
-                        None => break,
-                        Some (c) => {
-                            if !c.is_whitespace()
-                            { break; }
-                            query_vec.pop();
-                        }
-                    }
-                }
+                strip(&mut query_vec);
                 queries_vec.push(query_vec);
             },
             Err(_) => {}, // EOF
@@ -56,4 +63,8 @@ fn main() {
     let mut kmp_results:Vec<Vec<usize>> = Vec::new();
     kmp::run(&text_vec, &queries_vec, &mut kmp_results);
     print_result("kmp", &queries_vec, &kmp_results);
+
+    let mut ahocorasick_results:Vec<Vec<usize>> = Vec::new();
+    ahocorasick::run(&text_vec, &queries_vec, &mut ahocorasick_results);
+    print_result("aho-corasick", &queries_vec, &ahocorasick_results);
 }
