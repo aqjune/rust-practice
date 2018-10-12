@@ -5,10 +5,16 @@ use std::io::prelude::*;
 mod naive;
 mod kmp;
 
-fn print_result(name:&str, res:&Vec<usize>) {
+fn print_result(name:&str, queries:&Vec<Vec<char>>, res:&Vec<Vec<usize>>) {
     print!("{}: ", name);
-    for idx in res { print!("{} ", idx) }
-    println!("")
+    for idx in 0..queries.len() {
+        let query_str:String = queries[idx].iter().collect();
+        println!("Query: {}", query_str);
+        for idx2 in 0..res[idx].len() {
+            print!("{} ", res[idx][idx2]);
+        }
+        println!("");
+    }
 }
 
 fn main() {
@@ -17,6 +23,7 @@ fn main() {
     let mut text = String::new();
     buff.read_line(&mut text);
     let text_vec:Vec<char> = text.chars().collect();
+    let mut queries_vec:Vec<Vec<char>> = Vec::new();
 
     loop {
         let mut query = String::new();
@@ -36,17 +43,17 @@ fn main() {
                         }
                     }
                 }
-                let query2:String = query_vec.iter().collect();
-                println!("Query: {}", query2);
-                let mut result:Vec<usize> = Vec::new();
-
-                naive::run(&text_vec, &query_vec, &mut result);
-                print_result("naive", &result);
-                result.clear();
-                kmp::run(&text_vec, &query_vec, &mut result);
-                print_result("kmp", &result);
+                queries_vec.push(query_vec);
             },
             Err(_) => {}, // EOF
         }
     }
+
+    let mut naive_results:Vec<Vec<usize>> = Vec::new();
+    naive::run(&text_vec, &queries_vec, &mut naive_results);
+    print_result("naive", &queries_vec, &naive_results);
+
+    let mut kmp_results:Vec<Vec<usize>> = Vec::new();
+    kmp::run(&text_vec, &queries_vec, &mut kmp_results);
+    print_result("kmp", &queries_vec, &kmp_results);
 }

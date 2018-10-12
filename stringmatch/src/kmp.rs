@@ -1,4 +1,4 @@
-pub fn run(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<usize>) {
+pub fn stringmatch(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<usize>) {
   // prefix:The length of longest prefix-suffix match
   let mut prefix:Vec<usize> = vec![0; query_vec.len()];
   prefix[0] = 0;
@@ -35,4 +35,12 @@ pub fn run(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<usize>) {
       }
     }
   }
+}
+
+pub fn run(text_vec:&Vec<char>, queries_vec:&Vec<Vec<char>>, results:&mut Vec<Vec<usize>>) {
+    for query in queries_vec {
+        let mut result:Vec<usize> = Vec::new();
+        stringmatch(text_vec, query, &mut result);
+        results.push(result);
+    }
 }
