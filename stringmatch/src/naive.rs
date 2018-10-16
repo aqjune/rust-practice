@@ -1,4 +1,7 @@
 pub fn stringmatch(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<usize>) {
+    if query_vec.len() > text_vec.len()
+    { return; }
+
     for idx1 in 0..(text_vec.len() + 1 - query_vec.len()) {
         let mut matched = true;
         for idx2 in 0..(query_vec.len()) {
