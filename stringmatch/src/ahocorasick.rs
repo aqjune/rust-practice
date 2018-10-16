@@ -11,10 +11,12 @@ fn as_idx(c:char) -> usize {
 
 pub fn build_trie(queries_vec:&Vec<Vec<char>>, t:&mut AhcTrie) {
   // Build a trie.
-  t.trie.push([0; 26]); // node 0 is an invalid node.
+  // Create an invalid node 0.
+  t.trie.push([0; 26]);
   t.failure.push(0);
   t.output.push(Vec::new());
-  t.trie.push([0; 26]); // node 1 is a root node.
+  // Create a root node 1.
+  t.trie.push([0; 26]);
   t.failure.push(0); // failure of root is 0
   t.output.push(Vec::new());
 

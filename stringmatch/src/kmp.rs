@@ -1,3 +1,6 @@
+// Builds prefix-suffix array.
+// query_vec: a string of query
+// pfxsfx: the output
 pub fn build_pfxsfx(query_vec:&Vec<u16>, pfxsfx:&mut Vec<usize>) {
   // pfxsfx:The length of longest prefix-suffix match
   assert! (pfxsfx.len() == query_vec.len(), "pfxsfx.len() == query_vec.len()");
