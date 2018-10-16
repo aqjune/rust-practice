@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
-//use std::io::prelude::*;
 extern crate stringmatch2d;
 use util;
 
@@ -70,4 +69,8 @@ pub fn run(input_path:String) {
   let mut naive_results:Vec<(usize, usize)> = Vec::new();
   stringmatch2d::naive::run(&text_vec, &query_vec, &mut naive_results);
   print_and_check_result("naive", &query_vec, &naive_results, None);
+
+  let mut bakerbird_results:Vec<(usize, usize)> = Vec::new();
+  stringmatch2d::bakerbird::run(&text_vec, &query_vec, &mut bakerbird_results);
+  print_and_check_result("baker-bird", &query_vec, &bakerbird_results, Some(&naive_results));
 }

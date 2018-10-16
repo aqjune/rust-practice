@@ -68,10 +68,11 @@ pub fn run(input_path:String) {
                          Some(&naive_results));
 
   let mut ahocorasick_results:Vec<Vec<usize>> = Vec::new();
-  let mut ahc_t:stringmatch::ahocorasick::ahc_trie =
-    stringmatch::ahocorasick::ahc_trie
+  let mut ahc_t:stringmatch::ahocorasick::AhcTrie =
+    stringmatch::ahocorasick::AhcTrie
     { trie: Vec::new(), failure: Vec::new(), output: Vec::new() };
   stringmatch::ahocorasick::build_trie(&queries_vec, &mut ahc_t);
+  //stringmatch::ahocorasick::print_trie(&ahc_t);
   stringmatch::ahocorasick::run(&text_vec, &queries_vec, &ahc_t, &mut ahocorasick_results);
   print_and_check_result("aho-corasick", &queries_vec, &ahocorasick_results,
                          Some(&naive_results));
