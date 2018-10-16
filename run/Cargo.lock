@@ -1,0 +1,19 @@
+[[package]]
+name = "run"
+version = "0.1.0"
+dependencies = [
+ "stringmatch 0.1.0",
+ "stringmatch2d 0.1.0",
+]
+
+[[package]]
+name = "stringmatch"
+version = "0.1.0"
+
+[[package]]
+name = "stringmatch2d"
+version = "0.1.0"
+dependencies = [
+ "stringmatch 0.1.0",
+]
+

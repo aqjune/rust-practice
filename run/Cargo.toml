@@ -1,0 +1,8 @@
+[package]
+name = "run"
+version = "0.1.0"
+authors = ["Juneyoung Lee <aqjune@gmail.com>"]
+
+[dependencies]
+stringmatch = { path = "../stringmatch" }
+stringmatch2d = { path = "../stringmatch2d" }
