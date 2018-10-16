@@ -6,6 +6,11 @@ fn as_idx(c:char) -> usize {
 fn stringmatch(text_vec:&Vec<char>, queries_vec:&Vec<Vec<char>>,
                trie:&Vec<[usize; 26]>, failure:&Vec<usize>, output:&Vec<Vec<usize>>,
                results:&mut Vec<Vec<usize>>) {
+  // Initialize results
+  for _ in 0..queries_vec.len() {
+    results.push(Vec::new());
+  }
+
   let mut p = 1; // start at the root node!
   for idx in 0..text_vec.len() {
     let ic:usize = as_idx(text_vec[idx]);
@@ -30,12 +35,7 @@ fn stringmatch(text_vec:&Vec<char>, queries_vec:&Vec<Vec<char>>,
       p = trie[p][ic];
       assert!(p != 0, "trie[{}][{}] ( == {}) != 0", p, ic, trie[p][ic]);
     }
-  
-    // Initialize results
-    for _ in 0..queries_vec.len() {
-      results.push(Vec::new());
-    }
-  
+
     // If there is a match..
     // Follow failure links to aggregate outputs!
     // For example, if queries "abab", "ab", "b" are given,
