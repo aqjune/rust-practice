@@ -9,8 +9,8 @@ pub fn run(text_vec:&Vec<Vec<char>>, query_vec:&Vec<Vec<char>>,
   let qhei:usize = query_vec.len();
   let qwid:usize = query_vec[0].len();
 
-  for i in 0..thei - qhei {
-    for j in 0..twid - qwid {
+  for i in 0..thei + 1 - qhei {
+    for j in 0..twid + 1 - qwid {
       let mut found:bool = true;
 
       for ii in 0..qhei {
