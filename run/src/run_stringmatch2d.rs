@@ -60,7 +60,7 @@ pub fn run(input_path:String) {
     },
   };
   let_scan!(&a_str; (let n:usize, let m: usize));
-  println!("{} {}", n, m);
+
   let mut query_vec:Vec<Vec<char>> = Vec::new();
   let mut text_vec:Vec<Vec<char>> = Vec::new();
   read_text2d(&mut buff, &mut query_vec, n);

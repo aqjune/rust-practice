@@ -18,5 +18,7 @@ fn main() {
   } else if opt == "stringmatch2d" {
     let input_path = env::args().nth(2).expect(helpermsg);
     run_stringmatch2d::run(input_path);
+  } else {
+    println!("{}", helpermsg);
   }
 }
