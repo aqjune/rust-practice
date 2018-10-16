@@ -1,23 +1,26 @@
-pub fn stringmatch(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<usize>) {
-  // prefix:The length of longest prefix-suffix match
-  let mut prefix:Vec<usize> = vec![0; query_vec.len()];
-  prefix[0] = 0;
+pub fn build_pfxsfx(query_vec:&Vec<u16>, pfxsfx:&mut Vec<usize>) {
+  // pfxsfx:The length of longest prefix-suffix match
+  assert! (pfxsfx.len() == query_vec.len(), "pfxsfx.len() == query_vec.len()");
+  pfxsfx[0] = 0;
   for idx in 1..(query_vec.len()) {
-    let mut common_prefix_len = prefix[idx - 1];
+    let mut common_prefix_len = pfxsfx[idx - 1];
     loop {
       if query_vec[common_prefix_len] == query_vec[idx] {
         // found.
-        prefix[idx] = common_prefix_len + 1;
+        pfxsfx[idx] = common_prefix_len + 1;
         break;
       } else {
         if common_prefix_len == 0 {
-          prefix[idx] = 0;
+          pfxsfx[idx] = 0;
           break;
         }
-        common_prefix_len = prefix[common_prefix_len - 1];
+        common_prefix_len = pfxsfx[common_prefix_len - 1];
       }
     }
   }
+}
+
+pub fn run(text_vec:&Vec<u16>, query_vec:&Vec<u16>, pfxsfx:&Vec<usize>, result:&mut Vec<usize>) {
   // Now, find the match
   let mut qidx = 0;
   for idx in 0..(text_vec.len()) {
@@ -26,21 +29,13 @@ pub fn stringmatch(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<us
         qidx = qidx + 1;
         if qidx == query_vec.len() {
           result.push(idx + 1 - qidx);
-          qidx = prefix[qidx - 1];
+          qidx = pfxsfx[qidx - 1];
         }
         break;
       } else {
         if qidx == 0 { break };
-        qidx = prefix[qidx - 1];
+        qidx = pfxsfx[qidx - 1];
       }
     }
   }
-}
-
-pub fn run(text_vec:&Vec<char>, queries_vec:&Vec<Vec<char>>, results:&mut Vec<Vec<usize>>) {
-    for query in queries_vec {
-        let mut result:Vec<usize> = Vec::new();
-        stringmatch(text_vec, query, &mut result);
-        results.push(result);
-    }
 }
