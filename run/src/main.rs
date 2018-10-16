@@ -1,3 +1,5 @@
+#[macro_use] extern crate scan_rules;
+
 use std::env;
 
 mod run_stringmatch;

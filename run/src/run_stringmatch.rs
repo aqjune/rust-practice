@@ -25,6 +25,7 @@ fn print_and_check_result(name:&str, queries:&Vec<Vec<char>>, res:&Vec<Vec<usize
     }
 }
 
+
 pub fn run(input_path:String) {
   let f = File::open(input_path).expect("file not found");
   let mut buff = BufReader::new(&f);
@@ -54,12 +55,24 @@ pub fn run(input_path:String) {
   print_and_check_result("naive", &queries_vec, &naive_results, None);
 
   let mut kmp_results:Vec<Vec<usize>> = Vec::new();
-  stringmatch::kmp::run(&text_vec, &queries_vec, &mut kmp_results);
+  let text_u16:Vec<u16> = text_vec.iter().map(util::char_to_u16).collect::<Vec<_>>();
+  for i in 0..queries_vec.len() {
+    let query_u16:Vec<u16> = queries_vec[i].iter().map(util::char_to_u16).collect::<Vec<_>>();
+    let mut result:Vec<usize> = Vec::new();
+    let mut pfxsfx:Vec<usize> = vec![0; query_u16.len()];
+    stringmatch::kmp::build_pfxsfx(&query_u16, &mut pfxsfx);
+    stringmatch::kmp::run(&text_u16, &query_u16, &pfxsfx, &mut result);
+    kmp_results.push(result);
+  }
   print_and_check_result("kmp", &queries_vec, &kmp_results,
                          Some(&naive_results));
 
   let mut ahocorasick_results:Vec<Vec<usize>> = Vec::new();
-  stringmatch::ahocorasick::run(&text_vec, &queries_vec, &mut ahocorasick_results);
+  let mut ahc_t:stringmatch::ahocorasick::ahc_trie =
+    stringmatch::ahocorasick::ahc_trie
+    { trie: Vec::new(), failure: Vec::new(), output: Vec::new() };
+  stringmatch::ahocorasick::build_trie(&queries_vec, &mut ahc_t);
+  stringmatch::ahocorasick::run(&text_vec, &queries_vec, &ahc_t, &mut ahocorasick_results);
   print_and_check_result("aho-corasick", &queries_vec, &ahocorasick_results,
                          Some(&naive_results));
 }

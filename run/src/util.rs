@@ -10,3 +10,8 @@ pub fn strip(chrs:&mut Vec<char>) {
     }
   }
 }
+
+pub fn char_to_u16 (c:&char) -> u16 {
+  let c2:char = *c;
+  return c2 as u16;
+}

@@ -5,6 +5,7 @@ use std::io::BufRead;
 extern crate stringmatch2d;
 use util;
 
+
 fn print_and_check_result(name:&str, query:&Vec<Vec<char>>,
                           res:&Vec<(usize, usize)>,
                           answer:Option<&Vec<(usize, usize)>>) {
@@ -28,8 +29,8 @@ fn print_and_check_result(name:&str, query:&Vec<Vec<char>>,
     }
 }
 
-fn read_text2d(buff:&mut BufReader<&File>, text_vec:&mut Vec<Vec<char>>) {
-  loop {
+fn read_text2d(buff:&mut BufReader<&File>, text_vec:&mut Vec<Vec<char>>, n:usize) {
+  for _ in 0..n {
     let mut text = String::new();
     match buff.read_line(&mut text) {
       Ok(sz) => {
@@ -51,10 +52,20 @@ fn read_text2d(buff:&mut BufReader<&File>, text_vec:&mut Vec<Vec<char>>) {
 pub fn run(input_path:String) {
   let f = File::open(input_path).expect("file not found");
   let mut buff = BufReader::new(&f);
-  let mut text_vec:Vec<Vec<char>> = Vec::new();
+  let mut a_str = String::new();
+  match buff.read_line(&mut a_str) {
+    Ok(_) => {},
+    Err(_) => {
+      println!("Illegal format");
+      ::std::process::exit(1);
+    },
+  };
+  let_scan!(&a_str; (let n:usize, let m: usize));
+  println!("{} {}", n, m);
   let mut query_vec:Vec<Vec<char>> = Vec::new();
-  read_text2d(&mut buff, &mut text_vec);
-  read_text2d(&mut buff, &mut query_vec);
+  let mut text_vec:Vec<Vec<char>> = Vec::new();
+  read_text2d(&mut buff, &mut query_vec, n);
+  read_text2d(&mut buff, &mut text_vec, m);
 
   let mut naive_results:Vec<(usize, usize)> = Vec::new();
   stringmatch2d::naive::run(&text_vec, &query_vec, &mut naive_results);
