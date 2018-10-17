@@ -1,6 +1,7 @@
-pub fn stringmatch(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<usize>) {
-    if query_vec.len() > text_vec.len()
-    { return; }
+pub fn stringmatch(text_vec: &Vec<char>, query_vec: &Vec<char>, result: &mut Vec<usize>) {
+    if query_vec.len() > text_vec.len() {
+        return;
+    }
 
     for idx1 in 0..(text_vec.len() + 1 - query_vec.len()) {
         let mut matched = true;
@@ -16,11 +17,10 @@ pub fn stringmatch(text_vec:&Vec<char>, query_vec:&Vec<char>, result:&mut Vec<us
     }
 }
 
-pub fn run(text_vec:&Vec<char>, queries_vec:&Vec<Vec<char>>, results:&mut Vec<Vec<usize>>) {
+pub fn run(text_vec: &Vec<char>, queries_vec: &Vec<Vec<char>>, results: &mut Vec<Vec<usize>>) {
     for query in queries_vec {
-        let mut result:Vec<usize> = Vec::new();
+        let mut result: Vec<usize> = Vec::new();
         stringmatch(text_vec, query, &mut result);
         results.push(result);
     }
 }
-

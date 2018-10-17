@@ -1,3 +1,3 @@
-pub mod naive;
-pub mod kmp;
 pub mod ahocorasick;
+pub mod kmp;
+pub mod naive;
