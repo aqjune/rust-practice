@@ -12,6 +12,7 @@ fn main() {
     let helpermsg0: String = [
         "run stringmatch   <input(ex:inputs/stringmatch/test1.input)>",
         "run stringmatch2d <input(ex:inputs/stringmatch2d/test1.input)>",
+        "run compress      <input(ex:inputs/compress/infile.txt)>"
     ].join("\n");
     let helpermsg = helpermsg0.as_str();
     let opt = env::args().nth(1).expect(helpermsg);

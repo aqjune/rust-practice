@@ -1,4 +1,5 @@
 use std::mem::transmute;
+use std::str;
 
 pub struct State {
     pub trie: Vec<[usize; 256]>,  // a trie
@@ -50,8 +51,13 @@ fn encode(data: &Vec<u8>, encoded: &mut Vec<(usize, u8)>) {
     }
 }
 
-enum Lz78EncodeProc {
-    Naive
+pub enum Lz78EncodeProc {
+    Naive,
+    // uses high 1 bit of char & high 1 bit of index to encode the range of index of dictionary entry
+    // 0mmmmmmm nnnnnnnn : char m, index n (n < 2^8), 
+    // 1mmmmmmm 0nnnnnnn nnnnnnnn : char m, index n (2^8 <= n < 2^15)
+    // 1mmmmmmm 1nnnnnnn nnnnnnnn nnnnnnnn : char m, index n (2^15 <= n < 2^23)
+    UseCharHighBit
 }
 
 // Compresses the encoded data further
@@ -64,14 +70,36 @@ fn encode_postprocess(encoded: &Vec<(usize, u8)>, encoded_postproc:&mut Vec<u8>,
                 encoded_postproc.extend_from_slice(&bytes);
                 encoded_postproc.push(*chr);
             },
+        Lz78EncodeProc::UseCharHighBit =>
+            for (idx, chr) in encoded {
+                if *idx < usize::pow(2, 8) {
+                    encoded_postproc.push(*chr);
+                    encoded_postproc.push(*idx as u8);
+                } else if *idx < usize::pow(2, 15) {
+                    encoded_postproc.push(128 | *chr);
+                    encoded_postproc.push(((*idx & 0xFF00) >> 8) as u8);
+                    encoded_postproc.push((*idx & 0xFF) as u8);
+                } else if *idx < usize::pow(2, 23) {
+                    encoded_postproc.push(128 | *chr);
+                    encoded_postproc.push(128 | (((*idx & 0xFF0000) >> 16) as u8));
+                    encoded_postproc.push(((*idx & 0xFF00) >> 8) as u8);
+                    encoded_postproc.push((*idx & 0xFF) as u8);
+                } else {
+                    // Too big..!
+                    assert!(*idx < usize::pow(2, 23));
+                }
+            },
     }
 }
 
 
-pub fn compress(data:&Vec<u8>, compressed:&mut Vec<u8>) {
+pub fn compress(data0:&Vec<u8>, compressed:&mut Vec<u8>, encmethod:Lz78EncodeProc) {
     let mut encoded:Vec<(usize, u8)> = Vec::new();
-    encode(data, &mut encoded);
-    encode_postprocess(&encoded, compressed, Lz78EncodeProc::Naive);
+    let mut data:Vec<u8> = data0.to_vec();
+    data.push(127u8);
+    encode(&data, &mut encoded);
+
+    encode_postprocess(&encoded, compressed, encmethod);
 }
 
 
@@ -87,11 +115,38 @@ fn decode_preprocess(bytes: &Vec<u8>, encoded: &mut Vec<(usize, u8)>,
             assert!(bytes.len() % 9 == 0);
             while idx < bytes.len() {
                 let mut idx_bytes: [u8; 8] = Default::default();
-                idx_bytes.copy_from_slice(&bytes[idx..idx + 7]);
+                idx_bytes.copy_from_slice(&bytes[idx..idx + 8]);
                 let chr = bytes[idx + 8];
                 let trienode:usize = unsafe { transmute::<[u8; 8], usize>(idx_bytes) };
                 encoded.push((trienode, chr));
                 idx = idx + 9;
+            }
+        },
+        Lz78EncodeProc::UseCharHighBit => {
+            let mut idx = 0;
+            while idx < bytes.len() {
+                let mut chr:u8 = bytes[idx];
+                let mut trienode:usize;
+                idx = idx + 1;
+
+                if chr & 128 == 0 {
+                    // use one byte to encode the index of dictionary entry
+                    trienode = bytes[idx] as usize;
+                    idx = idx + 1;
+                } else {
+                    chr = chr & 127;
+                    if bytes[idx] & 128 == 0 {
+                        // use two bytes to encode
+                        trienode = ((bytes[idx] as usize) << 8) + (bytes[idx + 1] as usize);
+                        idx = idx + 2;
+                    } else {
+                        // use three bytes
+                        trienode = (((bytes[idx] & 127) as usize) << 16) +
+                                   ((bytes[idx + 1] as usize) << 8) + (bytes[idx + 2] as usize);
+                        idx = idx + 3;
+                    }
+                }
+                encoded.push((trienode, chr));
             }
         },
     }
@@ -109,12 +164,14 @@ fn decode(encoded:&Vec<(usize, u8)>, decoded: &mut Vec<u8>) {
         the_str.reverse();
         decoded.append(&mut the_str);
         decoded.push(*chr);
-        addnode(nodeidx, *chr, &mut st);
+        addnode(nodeidx0 + 1, *chr, &mut st);
     }
 }
 
-pub fn decompress(compressed:&Vec<u8>, data:&mut Vec<u8>) {
+pub fn decompress(compressed:&Vec<u8>, data:&mut Vec<u8>, encmethod:Lz78EncodeProc) {
     let mut encoded:Vec<(usize, u8)> = Vec::new();
-    decode_preprocess(compressed, &mut encoded, Lz78EncodeProc::Naive);
+    decode_preprocess(compressed, &mut encoded, encmethod);
+
     decode(&encoded, data);
+    data.pop();
 }

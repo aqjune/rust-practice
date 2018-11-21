@@ -10,13 +10,11 @@ pub fn run(input_path: String) {
     f.read_to_end(&mut buf);
 
     let mut compressed:Vec<u8> = Vec::new();
-    compress::lz78::compress(&buf, &mut compressed);
-    compress::lz78::decompress(&compressed, &mut buf2);
+    compress::lz78::compress(&buf, &mut compressed, compress::lz78::Lz78EncodeProc::UseCharHighBit);
+    compress::lz78::decompress(&compressed, &mut buf2, compress::lz78::Lz78EncodeProc::UseCharHighBit);
     
     if buf != buf2 {
         println!("Differ!!");
-        println!("{:?}", buf);
-        println!("{:?}", buf2);
     } else {
         let orgsz = buf.len();
         let compsz = compressed.len();
