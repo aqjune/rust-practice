@@ -7,9 +7,11 @@ pub struct State {
 }
 
 fn state_new() -> State{
-    let mut state:State;
-    // Init trie
-    state.trie.clear();
+    let mut state:State = State {
+        trie: Vec::new(),
+        trie_parent: Vec::new(),
+        trie_idx: 0,
+    };
     // Invalid node is 0
     state.trie.push([0; 256]);
     state.trie_parent.push((0, 0));
@@ -28,9 +30,8 @@ fn addnode<'a>(parent:usize, chr:u8, encoded:&'a mut State) {
     encoded.trie_parent.push((parent, chr));
 }
 
-pub fn lz78_encode(data: &Vec<u8>, encoded: &mut Vec<(usize, u8)>,
-                   state: &mut State) {
-    let state:State = state_new();
+fn encode(data: &Vec<u8>, encoded: &mut Vec<(usize, u8)>) {
+    let mut state:State = state_new();
 
     for d0 in data {
         let d:u8 = *d0;
@@ -49,12 +50,12 @@ pub fn lz78_encode(data: &Vec<u8>, encoded: &mut Vec<(usize, u8)>,
     }
 }
 
-pub enum Lz78EncodeProc {
+enum Lz78EncodeProc {
     Naive
 }
 
 // Compresses the encoded data further
-pub fn lz78_encode_postprocess(encoded: &Vec<(usize, u8)>, encoded_postproc:&mut Vec<u8>,
+fn encode_postprocess(encoded: &Vec<(usize, u8)>, encoded_postproc:&mut Vec<u8>,
                                postproc_method: Lz78EncodeProc) {
     match postproc_method {
         Lz78EncodeProc::Naive =>
@@ -67,28 +68,36 @@ pub fn lz78_encode_postprocess(encoded: &Vec<(usize, u8)>, encoded_postproc:&mut
 }
 
 
+pub fn compress(data:&Vec<u8>, compressed:&mut Vec<u8>) {
+    let mut encoded:Vec<(usize, u8)> = Vec::new();
+    encode(data, &mut encoded);
+    encode_postprocess(&encoded, compressed, Lz78EncodeProc::Naive);
+}
+
+
 /*
  * DECODE
  */
 
-pub fn lz78_decode_preproc(bytes: &Vec<u8>, encoded: &mut Vec<(usize, u8)>,
+fn decode_preprocess(bytes: &Vec<u8>, encoded: &mut Vec<(usize, u8)>,
                            preproc_method: Lz78EncodeProc) {
     match preproc_method {
         Lz78EncodeProc::Naive => {
             let mut idx = 0;
             assert!(bytes.len() % 9 == 0);
             while idx < bytes.len() {
-                let idx_bytes = &bytes[idx..idx + 7];
+                let mut idx_bytes: [u8; 8] = Default::default();
+                idx_bytes.copy_from_slice(&bytes[idx..idx + 7]);
                 let chr = bytes[idx + 8];
-                let idx:usize = { transmute::<[u8; 8], usize>(idx_bytes) };
-                encoded.push((idx, chr));
+                let trienode:usize = unsafe { transmute::<[u8; 8], usize>(idx_bytes) };
+                encoded.push((trienode, chr));
                 idx = idx + 9;
             }
         },
     }
 }
 
-pub fn lz78_decode(encoded:&Vec<(usize, u8)>, decoded: &mut Vec<u8>) {
+fn decode(encoded:&Vec<(usize, u8)>, decoded: &mut Vec<u8>) {
     let mut st:State = state_new();
     for (nodeidx0, chr) in encoded {
         let mut nodeidx = nodeidx0 + 1;
@@ -102,4 +111,10 @@ pub fn lz78_decode(encoded:&Vec<(usize, u8)>, decoded: &mut Vec<u8>) {
         decoded.push(*chr);
         addnode(nodeidx, *chr, &mut st);
     }
+}
+
+pub fn decompress(compressed:&Vec<u8>, data:&mut Vec<u8>) {
+    let mut encoded:Vec<(usize, u8)> = Vec::new();
+    decode_preprocess(compressed, &mut encoded, Lz78EncodeProc::Naive);
+    decode(&encoded, data);
 }
