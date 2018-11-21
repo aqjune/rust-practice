@@ -1,0 +1,9 @@
+3 5
+aab
+aba
+aaa
+aaaba
+aabab
+baaab
+ababa
+baaaa

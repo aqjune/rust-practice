@@ -1,0 +1,10 @@
+3 6
+aba
+bab
+aba
+abbaba
+abaaaa
+babbab
+abaaba
+bbbbab
+aaaaba
