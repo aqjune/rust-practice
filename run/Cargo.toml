@@ -6,4 +6,5 @@ authors = ["Juneyoung Lee <aqjune@gmail.com>"]
 [dependencies]
 stringmatch = { path = "../stringmatch" }
 stringmatch2d = { path = "../stringmatch2d" }
+compress = { path = "../compress" }
 scan-rules = "0.1.3"
