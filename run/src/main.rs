@@ -5,6 +5,7 @@ use std::env;
 
 mod run_stringmatch;
 mod run_stringmatch2d;
+mod run_compress;
 mod util;
 
 fn main() {
@@ -20,6 +21,9 @@ fn main() {
     } else if opt == "stringmatch2d" {
         let input_path = env::args().nth(2).expect(helpermsg);
         run_stringmatch2d::run(input_path);
+    } else if opt == "compress" {
+        let input_path = env::args().nth(2).expect(helpermsg);
+        run_compress::run(input_path);
     } else {
         println!("{}", helpermsg);
     }
