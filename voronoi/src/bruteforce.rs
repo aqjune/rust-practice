@@ -4,13 +4,19 @@ use line;
 
 // Returns true if a and b are equal in small absolute/relative error.
 fn eq_error(a:f64, b:f64) -> bool {
-  let err:f64 = 0.0000001;
+  let err:f64 = 0.00001;
   if (a - b).abs() < err {
     true
   } else {
-    (if b != 0.0 && b != -0.0 { a / b < 1.0 + err } else { false }) &&
-    (if a != 0.0 && a != -0.0 { b / a < 1.0 + err } else { false })
+    (if err < b.abs() { 1.0 - err < a / b && a / b < 1.0 + err } else { false }) &&
+    (if err < a.abs() { 1.0 - err < b / a && b / a < 1.0 + err } else { false })
   }
+}
+
+fn sorted_tuple(i:usize, j:usize, k:usize) -> (usize, usize, usize) {
+  let mut a:[usize; 3] = [i, j, k];
+  a.sort();
+  return (a[0], a[1], a[2]);
 }
 
 fn psub(p1:(f64, f64), p2:(f64, f64)) -> (f64, f64) {
@@ -43,19 +49,19 @@ fn get_circumcenter(pi: (f64, f64), pj: (f64, f64), pk: (f64, f64))
     // (xk - x)^2 + (yk - y)^2 = r^2  -- (3)
     //
     // (1) - (2) makes:
-    // (2 * xj - 2 * xi)x + (2 * yj - 2 * yi)y = xi^2 - xj^2 + yi^2 - yj^2
+    // (2 * xj - 2 * xi)x + (2 * yj - 2 * yi)y = xj^2 - xi^2 + yj^2 - yi^2
     // (1) - (3) makes:
-    // (2 * xk - 2 * xi)x + (2 * yk - 2 * yi)y = xi^2 - xk^2 + yi^2 - yk^2
+    // (2 * xk - 2 * xi)x + (2 * yk - 2 * yi)y = xk^2 - xi^2 + yk^2 - yi^2
     //
     // Represent this using matrix multiplication Ax = b:
-    // |(2*xj - 2*xi)  (2*yj - 2*yi)| | x |   |xi^2 - xj^2 + yi^2 - yj^2|
-    // |(2*xk - 2*xi)  (2*yk - 2*yi)| | y | = |xi^2 - xk^2 + yi^2 - yk^2|
+    // |(2*xj - 2*xi)  (2*yj - 2*yi)| | x |   |xj^2 - xi^2 + yj^2 - yi^2|
+    // |(2*xk - 2*xi)  (2*yk - 2*yi)| | y | = |xk^2 - xi^2 + yk^2 - yi^2|
     let a11 = 2.0 * xj - 2.0 * xi;
     let a12 = 2.0 * yj - 2.0 * yi;
     let a21 = 2.0 * xk - 2.0 * xi;
     let a22 = 2.0 * yk - 2.0 * yi;
-    let b1 = xi.powi(2) - xj.powi(2) + yi.powi(2) - yj.powi(2);
-    let b2 = xi.powi(2) - xk.powi(2) + yi.powi(2) - yk.powi(2);
+    let b1 = xj.powi(2) - xi.powi(2) + yj.powi(2) - yi.powi(2);
+    let b2 = xk.powi(2) - xi.powi(2) + yk.powi(2) - yi.powi(2);
     //
     // Inverse of the left 2 x 2 matrix is
     // |(2*yk - 2*yi)  (2*yi - 2*yj)|
@@ -67,6 +73,16 @@ fn get_circumcenter(pi: (f64, f64), pj: (f64, f64), pk: (f64, f64))
     let inv22 = a11 / det;
     let x = inv11 * b1 + inv12 * b2;
     let y = inv21 * b1 + inv22 * b2;
+/*
+    println!("<get_circumcenter>");
+    println!("inputs: ({}, {}), ({}, {}), ({}, {})", xi, yi, xj, yj, xk, yk);
+    println!("x = {}, y = {}", x, y);
+*/
+    let r = (x - xi).hypot(y - yi);
+
+    assert!(eq_error(r, (x - xj).hypot(y - yj)));
+    assert!(eq_error(r, (x - xk).hypot(y - yk)));
+
     Some((x, y))
   }
 }
@@ -76,8 +92,9 @@ fn get_circumcenter(pi: (f64, f64), pj: (f64, f64), pk: (f64, f64))
 output: a vector of lines (xbeg, ybeg, xend, yend)
 */
 pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
+  let mut voronoi_points:Vec<(f64, f64)> = Vec::new();
   let mut voronoi_vertices:Vec<Vec<usize> > = Vec::new();
-  let mut visited_points = HashSet::new();
+  let mut visited_points:HashSet<(usize, usize, usize)> = HashSet::new();
 
   for i in 0..input.len() {
     for j in i+1..input.len() {
@@ -90,12 +107,7 @@ pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
           None => continue,
           Some ((x, y)) => {
             let (xi, yi) = input[i];
-            let (xj, yj) = input[j];
-            let (xk, yk) = input[k];
             let r = (x - xi).hypot(y - yi);
-
-            assert!(eq_error(r, (x - xj).hypot(y - yj)));
-            assert!(eq_error(r, (x - xk).hypot(y - yk)));
 
             // Check whether there exists input[l] s.t. input[l]
             // is closer to (x,y) than input[i, j, k]
@@ -119,21 +131,25 @@ pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
             contributing_points.push(j);
             contributing_points.push(k);
 
-            for l in k+1..input.len() {
+            for l in 0..input.len() {
+              if l == i || l == j || l == k
+              { continue; }
+
               let (xl, yl) = input[l];
               let d = (xl - x).hypot(yl - y);
 
               if eq_error(r, d) {
                 // l is on the circle as well!
                 contributing_points.push(l);
-                visited_points.insert((i, j, l));
-                visited_points.insert((i, k, l));
-                visited_points.insert((j, k, l));
+                visited_points.insert(sorted_tuple(i, j, l));
+                visited_points.insert(sorted_tuple(i, k, l));
+                visited_points.insert(sorted_tuple(j, k, l));
               }
             }
             // Add a new voronoi vertex, which is represented by
             // its surrounding input points.
             voronoi_vertices.push(contributing_points);
+            voronoi_points.push((x, y));
           },
         }
       }
@@ -153,11 +169,7 @@ pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
   
   // Let's start by sorting voronoi_vertices[i][0..n] by angle..!
   for i in 0..voronoi_vertices.len() {
-    // Note that these three points should not be on a same line, so unwrap() succeeds.
-    let (px, py) = get_circumcenter(
-        input[voronoi_vertices[i][0]],
-        input[voronoi_vertices[i][1]],
-        input[voronoi_vertices[i][2]]).unwrap();
+    let (px, py) = voronoi_points[i];
     // To sort by angle: we use cross product again.
     voronoi_vertices[i].sort_by(|j, k| {
         let (xj, yj) = normalize(psub(input[*j], (px, py)));
@@ -173,23 +185,28 @@ pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
         }
       }
     );
+    /*
+    println!("Voronoi vertex {}, {}: After sorting:", px, py);
+    for j in 0..voronoi_vertices[i].len() {
+      print!("{} ", voronoi_vertices[i][j]);
+    }
+    println!("");
+    */
   }
   // Now, let's make lines.
   for i in 0..voronoi_vertices.len() {
-    let (px, py) = get_circumcenter(
-        input[voronoi_vertices[i][0]],
-        input[voronoi_vertices[i][1]],
-        input[voronoi_vertices[i][2]]).unwrap();
+    let (px, py) = voronoi_points[i];
     for j in 0..voronoi_vertices[i].len() {
       let idx1 = voronoi_vertices[i][j];
       let idx2 = voronoi_vertices[i][(j + 1) % voronoi_vertices[i].len()];
       
       let mut connected_vv:Option<usize> = None;
-      for i2 in i+1..voronoi_vertices.len() {
+      for i2 in 0..voronoi_vertices.len() {
+        if i2 == i { continue; }
         // check whether i and i2 can be connected!
         for j2 in 0..voronoi_vertices[i2].len() {
-          if voronoi_vertices[i2][j2] == idx1 &&
-             voronoi_vertices[i2][(j2 + 1) % voronoi_vertices[i2].len()] == idx2 {
+          if voronoi_vertices[i2][j2] == idx2 &&
+             voronoi_vertices[i2][(j2 + 1) % voronoi_vertices[i2].len()] == idx1 {
             assert!(connected_vv == None);
             connected_vv = Some(i2);
             // For debugging, just fall throguh (don't do break)
@@ -199,19 +216,23 @@ pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
 
       match connected_vv {
         None => { // Infinite line!
-          let xmid = (input[idx1].0 + input[idx2].0) / 2.0;
-          let ymid = (input[idx1].1 + input[idx2].1) / 2.0;
+          let xdir = input[idx2].0 - input[idx1].0;
+          let ydir = input[idx2].1 - input[idx1].1;
+          // rotate (xdir, ydir) by -pi/2 & add it to (px,py)
           output.push(
-            line::Line { xbeg: px, ybeg: py, xend: xmid, yend: ymid,
+            line::Line { xbeg: px, ybeg: py,
+                         xend: px - ydir, yend: py + xdir,
                          finite: false }
           )
         },
         Some(i2) => { // Finite line.
-          let (qx, qy) = input[i2];
-          output.push(
-            line::Line { xbeg: px, ybeg: py, xend: qx, yend: qy,
-                         finite: true }
-          )
+          if i < i2 { // no duplication
+            let (qx, qy) = voronoi_points[i2];
+            output.push(
+              line::Line { xbeg: px, ybeg: py, xend: qx, yend: qy,
+                          finite: true }
+            )
+          }
         },
       }
     }

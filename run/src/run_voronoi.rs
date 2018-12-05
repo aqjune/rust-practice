@@ -18,6 +18,7 @@ pub fn run(input_path: String) {
     
     voronoi::bruteforce::run(&input, &mut output);
 
+    println!("xbeg ybeg xend yend is_finite");
     for line in output {
         println!("{} {} {} {} {}", line.xbeg, line.ybeg, line.xend, line.yend, line.finite);
     }
