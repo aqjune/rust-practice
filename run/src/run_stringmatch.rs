@@ -32,7 +32,7 @@ pub fn run(input_path: String) {
     let f = File::open(input_path).expect("file not found");
     let mut buff = BufReader::new(&f);
     let mut text = String::new();
-    buff.read_line(&mut text);
+    buff.read_line(&mut text).expect("empty input");
     let mut text_vec: Vec<char> = text.chars().collect();
     util::strip(&mut text_vec);
     let mut queries_vec: Vec<Vec<char>> = Vec::new();

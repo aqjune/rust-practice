@@ -75,7 +75,7 @@ fn get_circumcenter(pi: (f64, f64), pj: (f64, f64), pk: (f64, f64))
 /*
 output: a vector of lines (xbeg, ybeg, xend, yend)
 */
-fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
+pub fn run(input:&Vec<(f64, f64)>, output:&mut Vec<line::Line>) {
   let mut voronoi_vertices:Vec<Vec<usize> > = Vec::new();
   let mut visited_points = HashSet::new();
 

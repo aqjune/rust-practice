@@ -1,3 +1,2 @@
 pub mod bruteforce;
-
-mod line;
+pub mod line;
