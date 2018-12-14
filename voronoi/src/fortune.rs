@@ -17,7 +17,7 @@ fn intersection(p1: parabola::Point, p2: parabola::Point, dirx:f64)
     // get intersection "y" => put x in tmp's eqn
     // TODO: fix it
     if p2._y == dirx {
-        result.x = p2._x;
+        result._x = p2._x;
         result._y = (tmp._y * tmp._y) + (tmp._x - result._x) * (tmp._x - result._x) - dirx * dirx) / (2 * tmp._y - 2 * dirx);
         return (Some result, None)
     } else if p1._y == dirx {
@@ -52,7 +52,7 @@ fn intersection(p1: parabola::Point, p2: parabola::Point, dirx:f64)
 
 pub fn run(input:&vec<(f64, f64)>, output:&mut vec<Line>) {
     
-    let mut voronoi_points:Vec<(f64, f64)> = Vec::new();
+    let mut voronoi_points:Vec<(Parabola::Point)> = Vec::new();
     let mut voronoi_vertices:Vec<Vec<usize> > = Vec::new();
     let mut visited_points:HashSet<(usize, usize, usize)> = HashSet::new();
 
