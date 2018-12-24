@@ -6,4 +6,4 @@ Implemented algorithms:
 - Aho-Corasick
 - Baker-Bird
 - LZ78
-- Fortune's Algorithm
+- ~Fortune's Algorithm~ Brute-force algorithm for Voronoi diagram
