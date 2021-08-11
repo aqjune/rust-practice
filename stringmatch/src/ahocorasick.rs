@@ -46,7 +46,6 @@ pub fn build_trie(queries_vec: &Vec<Vec<char>>, t: &mut AhcTrie) {
             p = t.trie[p][ic];
         }
         t.output[p].push(qidx);
-        //println!("Inserting {} to output[{}]", qidx, p);
     }
     // Now, fill failure function.
     for qidx in 0..queries_vec.len() {
