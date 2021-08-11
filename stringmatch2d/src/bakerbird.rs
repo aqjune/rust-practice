@@ -82,15 +82,6 @@ pub fn run(
             }
         }
 
-        /*  // For debugging
-    for j in 0..nw {
-      if res_row[j] == 65535 {
-        print!("- ");
-      } else {
-        print!("{} ", res_row[j]);
-      }
-    }
-    println!(""); */
         // Now run KMP for this row!
         // j is the idx of column of the text.
         for j in 0..nw {
